@@ -33,3 +33,39 @@ Single Page Chat Application based on the [Single Page Web Applications]( https:
 * 6.5. Create the Avatar feature module
 * 6.6. Data binding and jQuery
 * 6.7. Create the Data module
+
+## File Structure
+
+####css/spa.css
+* Provides root CSS namespace
+* This is the root stylesheet
+
+####css/spa.shell.css
+* The master CSS architecture for the SPA
+* Provides shape and structure
+* All CSS IDs and class names are prefixed with the app name, "spa-shell-"
+
+--
+
+####js/spa.js
+* Provides root JavaScript namespace
+* Initializes the SPA
+
+####js/spa.shell.js
+* The master JavaScript controller for the SPA
+* Initializes, manages and renders the shape, structure and containers that hold feature modules
+* Coordinates the sub-controllers for feature modules and ties them with business logic and browser interfaces
+
+####js/jq/
+* Houses jquery dependencies and plugins
+
+--
+
+####layout.html
+* Wireframe design for the SPA
+* This code is later transferred to js/spa.shell.js
+
+--
+
+####spa.html
+* Root file read and rendered by the browser
