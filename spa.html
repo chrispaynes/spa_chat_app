@@ -1,0 +1,36 @@
+<!--  this file should remain small and loads libraries, stylesheets and start the application -->
+
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <title>SPA Starter</title>
+
+    <!-- #1 stylesheets -->
+    <link rel="stylesheet" href="css/spa.css" type="text/css">
+    <link rel="stylesheet" href="css/spa.shell.css" type="text/css">
+
+    <!-- #2 third-party javascript -->
+    <script src="js/jq/jquery-3.0.0.js"></script>
+    <script src="js/jq/jquery.uriAnchor-1.2.2.js"></script>
+
+    <!-- #3 SPA javascript (ordered by namespace) -->
+    <script src="js/spa.js"></script>
+    <script src="js/spa.shell.js"></script>
+    
+    <!-- Initialize the App -->
+
+    <script>
+      $(function(){spa.initModule( $("#spa") ); });
+    </script>
+
+  </head>
+
+  <body>
+    <div id="spa"></div>    
+  </body>
+  
+</html>
