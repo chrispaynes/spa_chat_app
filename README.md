@@ -4,14 +4,12 @@ Single Page Chat Application based on the [Single Page Web Applications]( https:
 
 # Project Status - Work In Progress
 
-### PART 2 THE SPA CLIENT
-
 #### CHAPTER 3: DEVELOP THE SHELL
 * 3.2. Set up the files and namespaces
 * 3.3. Create the feature containers
 * 3.4. Render the feature containers
 * 3.5. Manage the feature containers
-<!-- * 3.6. Manage application state
+* 3.6. Manage application state
 
 #### CHAPTER 4: ADD FEATURE MODULES
 * 4.1. The feature module strategy
