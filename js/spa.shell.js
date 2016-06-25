@@ -25,7 +25,24 @@ spa.shell = (function() {
   //  ----------------- BEGIN MODULE SCOPE VARIABLES  ----------------- 
   var
     configMap = {
-      main_html: String() + '<div class="spa-shell-head">' + '<div class="spa-shell-head-logo"></div>' + '<div class="spa-shell-head-acct"></div>' + '<div class="spa-shell-head-search"></div>' + '</div>' + '<div class="spa-shell-main">' + '<div class="spa-shell-main-nav"></div>' + '<div class="spa-shell-main-content"></div>' + '</div>' + '<div class="spa-shell-foot"></div>' + '<div class="spa-shell-chat"></div>' + '<div class="spa-shell-modal"></div>',
+      anchor_schema_map: {
+        chat: { open: true,
+                closed: true
+              }
+      },
+      main_html: String()
+        + '<div class="spa-shell-head">'
+          + '<div class="spa-shell-head-logo"></div>'
+          + '<div class="spa-shell-head-acct"></div>'
+          + '<div class="spa-shell-head-search"></div>'
+        + '</div>'
+        + '<div class="spa-shell-main">'
+          + '<div class="spa-shell-main-nav"></div>'
+          + '<div class="spa-shell-main-content"></div>'
+        + '</div>'
+        + '<div class="spa-shell-foot"></div>'
+        + '<div class="spa-shell-chat"></div>'
+        + '<div class="spa-shell-modal"></div>',      
       chat_extend_time: 250,
       chat_retract_time: 300,
       chat_extend_height: 450,
@@ -35,20 +52,93 @@ spa.shell = (function() {
     },
     stateMap = {
       $container: null,
+      anchor_map: {},
       is_chat_retracted: true
     },
     // caches jQuery collections in map
     jqueryMap = {},
 
-    setJqueryMap, toggleChat, onClickChat, initModule;
+    // method declarations
+    copyAnchorMap, setJqueryMap, toggleChat, changeAnchorPart,
+    onHashchange, onClickChat, initModule;
   //  ----------------- END MODULE SCOPE VARIABLES  -----------------
 
 
   //  ----------------- BEGIN UTILITY METHODS -----------------------
   // these methods don't interact with page elements
+  // Returns copy of stored anchor map using jQuery's extend method
+  copyAnchorMap = function() {
+    return $.extend(true, {}, stateMap.anchor_map);
+  };
   //  ----------------- END UTILITY METHODS -------------------------
 
   //  ----------------- BEGIN DOM METHODS ---------------------------
+  // Begin DOM method /changeAnchorPart
+  // Purpose:
+  //   Automatically changes part of URI anchor component.
+  //   Takes a map of changes and updates only the specified key value component
+  //   in the stateMap.anchor_map
+  // Arguments:
+  //   * arg_map - the map describing what part of the URI anchor to change
+  // Returns:
+  //   * true - the anchor portion of the URI was updated
+  //   * false - the anchor portion of the URI could not be updated
+  // Action:
+  //   The current anchor rep stored in stateMap.anchor.map
+  //   This method
+  //     * Creates a copy of this map using copyAnchorMap().
+  //     * Modifies the key-values using arg_map.
+  //     * Manages the distinction between independent
+  //       and dependent values in the encoding.
+  //     * Attempts to change URI using uriAnchor.
+  //     * Returns true on success, false on failure
+
+  changeAnchorPart = function(arg_map) {
+    var
+      anchor_map_revise = copyAnchorMap(),
+      bool_return = true,
+      key_name, key_name_dep;
+
+    // Begin merge changes into anchor map
+    KEYVAL:
+    for(key_name in arg_map){
+      if(arg_map.hasOwnProperty(key_name)) {
+
+        // skip dependent keys during iteration
+        if(key_name.indexOf("_") === 0) {
+          continue KEYVAL;
+        }
+
+        // update independent key value
+        anchor_map_revise[key_name] = arg_map[key_name];
+
+        // update matching dependent key
+        key_name_dep = "_" + key_name;
+        if(arg_map[key_name_dep]) {
+          anchor_map_revise[key_name_dep] = arg_map[key_name_dep];
+        } else {
+          delete anchor_map_revise[key_name_dep];
+          delete anchor_map_revise["_s" + key_name_dep];
+        }
+      }
+    }
+    // End merge changes into anchor map
+
+    // Begin attempt to update URI; revert to previous state if unsuccessful
+    try {
+      $.uriAnchor.setAnchor(anchor_map_revise);
+    }
+    catch(error) {
+      // replace URI with existing state
+      $.uriAnchor.setAnchor(stateMap.anchor_map, null, true);
+      bool_return = false;
+    }
+    // End attempt to update URI; revert to previous state if unsuccessful
+
+    return bool_return;
+  };
+  // End DOM method /changeAnchorPart
+
   // Begin DOM method /setJqueryMap/
   setJqueryMap = function() {
     var $container = stateMap.$container;
@@ -125,19 +215,73 @@ spa.shell = (function() {
     );
     return true;
     // End retract chat slider
-  }
+  };
   // End DOM method /toggleChat/
   //  ----------------- END DOM METHODS -----------------------------
 
   //  ----------------- BEGIN EVENT HANDLERS ------------------------
+  // Begin Event handler /onHashchange/
+  // Purpose: Handles the Hashchange event
+  // Arguments:
+  //  * event - jQuery event object
+  // Settings: none
+  // Returns: false
+  // Actions:
+  //  * Parses URI anchor component
+  //  * Compares proposed application state against current state 
+  //  * Adjust the application only where proposes state change
+  //    differs from existing state
+  onHashchange = function(event){
+    var
+      anchor_map_previous = copyAnchorMap(),
+      anchor_map_proposed,
+      _s_chat_previous, _s_chat_proposed,
+      s_chat_proposed;
+
+      // attempt to parse anchor
+      try {
+        anchor_map_proposed = $.uriAnchor.makeAnchorMap();
+      }
+      catch(error){
+        $.uriAnchor.setAnchor(anchor_map_previous, null, true);
+        return false;
+      }
+      stateMap.anchor_map = anchor_map_proposed;
+      
+      // convenience vars
+      _s_chat_previous = anchor_map_previous._s_chat;
+      _s_chat_proposed = anchor_map_proposed._s_chat;
+
+      // Begin adjust chat component if changed
+      if(!anchor_map_previous || _s_chat_previous !== _s_chat_proposed){
+        s_chat_proposed = anchor_map_proposed.chat;
+        switch(s_chat_proposed) {
+          case "open":
+            toggleChat(true);
+            break;
+          case "closed":
+            toggleChat(false);
+            break;
+          default:
+            toggleChat(false);
+            delete anchor_map_proposed.chat;
+            $.uriAnchor.setAnchor(anchor_map_proposed, null, true); 
+        }
+      }
+      // End adjust chat component if changed
+
+      return false;
+    };
+  // End Event handler /onHashchange/
+
+  // Begin Event handler /onClickChat/
   onClickChat = function(event) {
-    if(toggleChat(stateMap.is_chat_retracted)){
-      $.uriAnchor.setAnchor({
-        chat: (stateMap.is_chat_retracted ? "open" : "closed" )
-      });
-    }
+    changeAnchorPart({
+      chat: (stateMap.is_chat_retracted ? "open" : "closed" )
+    });
     return false;
   };
+  // End Event handler /onClickChat/
   //  ----------------- ENDS EVENT HANDLERS -------------------------
 
   //  ----------------- BEGIN PUBLIC METHODS ------------------------
@@ -155,16 +299,24 @@ spa.shell = (function() {
       .click(onClickChat);
     //
 
-    // tests toggle functionality
-    setTimeout(function() {
-      toggleChat(true);
-    }, 3000);
-    setTimeout(function() {
-      toggleChat(false);
-    }, 8000);
-  }
-  // End Public Method /initModule/
+ // configure uriAnchor to use SPA schema
+  $.uriAnchor.configModule({
+    schema_map: configMap.anchor_schema_map
+  });
 
+
+  // Handle URI anchor change events
+  // This is done after all feature modules are configured
+  // and initialized, otherwise they will not be ready to 
+  // handle the trigger event, which is used to ensure the anchor
+  // is considered on-load
+  $(window)
+    .bind("hashchange", onHashchange)
+    .trigger("hashchange");
+  
+  };
+  // End Public Method /initModule/
+  
   return {
     initModule: initModule
   };
