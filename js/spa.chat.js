@@ -138,6 +138,79 @@ spa.chat = (function() {
   };
   //  End DOM method /set/PxSizes/
 
+  //  Begin public method /setSliderPosition/
+  //  Example: spa.chat.setSliderPosition("closed");
+  //  Purpose: Moves the chat slider to the requested position
+  //  Arguments:
+  //    * position_type - enum("closed", "opened", or "hidden")
+  //    * callback - optional callback to run at the end of
+  //                 slider animation. The callback receives
+  //                 a jQuery collection representing the
+  //                 slider div as its single argument
+  //  Action: moves the slider into the requested position.
+  //          If the requested position is the current position,
+  //          it returns true without taking further action.
+  //  Returns:
+  //    * true - the requested position was achieved
+  //    * false - the requested position was not achieved
+  //  Throws: none
+
+  setSliderPosition = function(position_type, callback) {
+    var
+      height_px, animate_time, slider_title, toggle_text;
+
+    //  return true if slider is already in requested position
+    if(stateMap.position_type === position_type){
+      return true;
+    }
+
+    //  prepare animation parameters
+    switch(position_type) {
+      case "opened":
+        height_px = stateMap.slider_opened_px;
+        animate_time = configMap.slider_opened_time;
+        slider_title = configMap.slider_opened_title;
+        toggle_text = "=";
+        break;
+
+      case "hidden":
+        height_px = 0;
+        animate_time = configMap.slider_open_time;
+        slider_title = "";
+        toggle_text = "+";
+        break;
+
+      case "closed":
+        height_px = stateMap.slider_closed_px;
+        animate_time = configMap.slider_close_time;
+        slider_title = configMap.slider_closed_title;
+        toggle_text = "+";
+        break;
+
+      //  break for unknown position_type
+      default:
+        return false;
+    }
+
+    //  animate slider position chage
+    stateMap.position_type = "";
+    jqueryMap.$slider.animate({
+      height: height_px
+      },
+      animate_time,
+      function() {
+        jqueryMap.$toggle.prop("title", slider_title);
+        jqueryMap.$toggle.text(toggle_text);
+        stateMap.position_type = position_type;
+        if(callback) {
+          callback(jqueryMap.$slider);
+        }
+      }
+    );
+    return true;
+  };
+  //  End public method /setSliderPosition/  
+
   //  ----------------- BEGIN EVENT HANDLERS ------------------------
   //  ----------------- ENDS EVENT HANDLERS -------------------------
 
