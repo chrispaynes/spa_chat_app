@@ -87,7 +87,8 @@ spa.chat = (function() {
 
 
   //  ----------------- BEGIN UTILITY METHODS -----------------------
-  // these methods don't interact with page elements
+  //  these methods don't interact with page elements
+  //  Converts em unites to pixels so pixels can be used in jQuery
   getEmSize = function(elem) {
     return Number(
         getComputedStyle(elem, "").fontSize.match(/\d*\.?\d*/)[0]
@@ -99,7 +100,8 @@ spa.chat = (function() {
 
   //  ----------------- BEGIN DOM METHODS ---------------------------
   
-  // Begin DOM method /setJqueryMap/
+  //  Begin DOM method /setJqueryMap/
+  //  Caches a large number of jQuery collections
   setJqueryMap = function() {
     var
       $append_target = stateMap.$append_target,
@@ -116,10 +118,25 @@ spa.chat = (function() {
       $input: $slider.find(".spa-chat-input input[type=text]")                     
     };
   };
-  // End DOM method /setJqueryMap/
+  //  End DOM method /setJqueryMap/
 
   //  ----------------- END DOM METHODS -----------------------------
+  //  Begin DOM method /set/PxSizes/
+  //  Calculates the pixel sizes for elements
+  setPxSizes = function(){
+    var px_per_em, opened_height_em;
+    px_per_em = getEmSize(jqueryMap.$slider.get(0));
 
+    opened_height_em = configMap.slider_opned_em;
+
+    stateMap.px_per_em = px_per_em;
+    stateMap.slider_closed_px = configMap.slider_closed_em * px_per_em;
+    stateMap.slider_opened_px = opened_height_em * px_per_em;
+    jqueryMap.$sizer.css({
+      height: (opened_height_em - 2) * px_per_em
+    });
+  };
+  //  End DOM method /set/PxSizes/
 
   //  ----------------- BEGIN EVENT HANDLERS ------------------------
   //  ----------------- ENDS EVENT HANDLERS -------------------------
