@@ -232,14 +232,26 @@ spa.chat = (function() {
   //  ----------------- BEGIN PUBLIC METHODS ------------------------
   
   //  Begin public method /configModule/
-  //  Purpose: Adjust configutation of allowed keys
-  //  Arguments: A map of settable keys and values
-  //    * color_name - color to use
-  //  Settings:
-  //    * configMap.settable_map - declares allowed keys
+  //  Example: spa.chat.configModule({ slider_open: 18 });
+  //  Purpose: Configure the module prior to initialization
+  //  Arguments: 
+  //    * set_chat_anchor - a callback to modify the URI anchor to indicate
+  //                        opened or closed state. This callback must return
+  //                        false if the requested state cannot be met.
+  //    * chat_model - provides methods to interact with instant messaging
+  //    * people_model - provides methods to manage the list of people the
+  //                     model maintains
+  //    * slider_* settings - optional scalars.
+  //                          See mapConfig.settable_map for full list.
+  //                          Example: slider_open_em is the open height for em's
+  //  Action:
+  //    * The internal configuration data structure (configMap) is
+  //      updated with provided arguments. No other actions are taken
   //  Returns: true
-  //  Throws: none
+  //  Throws:
+  //    * JavaScript error object and stack trace on unacceptable or missing arguments
 
+  //  uses spa.util.setConfigMap to configure the chat module
   configModule = function(input_map) {
     spa.util.setConfigMap({
       input_map: input_map,
