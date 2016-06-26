@@ -211,7 +211,21 @@ spa.chat = (function() {
   };
   //  End public method /setSliderPosition/  
 
+
   //  ----------------- BEGIN EVENT HANDLERS ------------------------
+  //  Updates the onClick event handler to make a call to change the URI anchor.
+  //  After completion, it promptly exits
+  //  Leaves the hashChange event handler in the shell to pick up the change
+  onClickToggle = function(event) {
+    var set_chat_anchor = configMap.set_chat_anchor;
+    if(stateMap.position_type === "opened") {
+      set_chat_anchor("closed");
+    }
+    else if(stateMap.position_type === "closed") {
+      set_chat_anchor("opened");
+    }
+    return false;
+  };
   //  ----------------- ENDS EVENT HANDLERS -------------------------
 
 
