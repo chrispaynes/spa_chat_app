@@ -263,23 +263,39 @@ spa.chat = (function() {
   //  End public method /configModule/
 
   //  Begin public method /initModule/
-  //  Purpose: Initializes module
+  //  Example: spa.chat.initModule($("#div_id"));
+  //  Purpose: Directs chat to offer its capability to the user
   //  Arguments:
-  //    * $container - the jquery element used by this feature
-  //  Returns: true
+  //    * $append_target(example: $("#div_id")).
+  //      A jQuery collection that should represent a single DOM container
+  //  Action:
+        // Appends the chater slider to the provided container and fills
+        // it with HTML content. It then initializes elements,
+        // events, and handlers to provide the user with a chat-room interface
+  //  Returns: true on success, false on failure
   //  Throws: none
 
-  initModule = function($container) {
-    // fills the chat slider container with HTML template
-    $container.html(configMap.main_html);
-    stateMap.$container = $container;
+  //  #1 - starts the module,
+  //  #2 - fills the chat slider container with HTML template
+  //  #3 - initializes event handlers
+  initModule = function($append_target) {
+    $append_target.append(configMap.main_html);
+    stateMap.$append_target = $append_target;
     setJqueryMap();
+    setPxSizes();
+
+    //  initializes chat slider to default title and state
+    jqueryMap.$toggle.prop("title", configMap.slider_closed_title);
+    jqueryMap.$head.click(onClickToggle);
+    stateMap.position_type = "closed";
+
     return true;
   };
   //  End public method /initModule/
   
-  //  Return public module methods
+  //  Return and export public module methods
   return {
+    setSliderPosition: setSliderPosition,
     configModule: configModule,
     initModule: initModule
   };
