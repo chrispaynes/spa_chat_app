@@ -29,7 +29,7 @@ spa.chat = (function() {
       main_html: String()
         + '<div class="spa-chat">'
         +   '<div class="spa-chat-head">'
-        +     '<div class="spa-chat-head-toggle"></div>'
+        +     '<div class="spa-chat-head-toggle">+</div>'
         +     '<div class="spa-chat-head-title">'
         +       'Chat'
         +     '</div>'
@@ -123,11 +123,11 @@ spa.chat = (function() {
   //  ----------------- END DOM METHODS -----------------------------
   //  Begin DOM method /set/PxSizes/
   //  Calculates the pixel sizes for elements
-  setPxSizes = function(){
+  setPxSizes = function() {
     var px_per_em, opened_height_em;
     px_per_em = getEmSize(jqueryMap.$slider.get(0));
 
-    opened_height_em = configMap.slider_opned_em;
+    opened_height_em = configMap.slider_opened_em;
 
     stateMap.px_per_em = px_per_em;
     stateMap.slider_closed_px = configMap.slider_closed_em * px_per_em;
@@ -168,7 +168,7 @@ spa.chat = (function() {
     switch(position_type) {
       case "opened":
         height_px = stateMap.slider_opened_px;
-        animate_time = configMap.slider_opened_time;
+        animate_time = configMap.slider_open_time;
         slider_title = configMap.slider_opened_title;
         toggle_text = "=";
         break;
@@ -216,13 +216,13 @@ spa.chat = (function() {
   //  Updates the onClick event handler to make a call to change the URI anchor.
   //  After completion, it promptly exits
   //  Leaves the hashChange event handler in the shell to pick up the change
-  onClickToggle = function(event) {
+  onClickToggle = function(event){
     var set_chat_anchor = configMap.set_chat_anchor;
-    if(stateMap.position_type === "opened") {
-      set_chat_anchor("closed");
+    if(stateMap.position_type === 'opened') {
+      set_chat_anchor('closed');
     }
-    else if(stateMap.position_type === "closed") {
-      set_chat_anchor("opened");
+    else if(stateMap.position_type === 'closed'){
+      set_chat_anchor('opened');
     }
     return false;
   };
