@@ -59,8 +59,10 @@ spa.chat = (function() {
 
       slider_open_time: 250,
       slider_close_time: 250,
-      slider_opened_em: 16,
+      slider_opened_em: 18,
       slider_closed_em: 2,
+      slider_opened_min_em: 10,
+      window_height_min_em: 20,
       slider_opened_title: "click to close",
       slider_closed_title: "click to open",
 
@@ -125,10 +127,20 @@ spa.chat = (function() {
   //  Begin DOM method /set/PxSizes/
   //  Calculates the pixel sizes for elements
   setPxSizes = function() {
-    var px_per_em, opened_height_em;
+    var px_per_em, window_height_em, opened_height_em;
     px_per_em = getEmSize(jqueryMap.$slider.get(0));
 
-    opened_height_em = configMap.slider_opened_em;
+    //  calculates the window height in em units
+    window_height_em = Math.floor(
+      ($(window).height() / px_per_em) + 0.5
+    );
+
+    //  determines the slider's opened height by comparing
+    //  the current window height to the threshold
+    opened_height_em
+      = window_height_em > configMap.window_height_min_em
+      ? configMap.slider_opened_em 
+      : configMap.slider_opened_min_em;
 
     stateMap.px_per_em = px_per_em;
     stateMap.slider_closed_px = configMap.slider_closed_em * px_per_em;
@@ -321,7 +333,36 @@ spa.chat = (function() {
     return true;
   };
 
-  //  End public method /removeSlider/ 
+  //  End public method /removeSlider/
+
+  //  Begin public method /handleResize/
+  //  Purpose:
+  //    Given a window resize event, adjust the presentation provided
+  //    by this module if needed
+  //  Actions:
+  //    If the window height or width falls below a given threshold,
+  //    resize the chat slider for the reduced window size
+  //  Returns: Boolean
+  //    * false - resize not considered
+  //    * true - resize considered
+  //  Throws: none
+
+  handleResize = function() {
+    // don't perform any actions if there is not a slider container
+    if(!jqueryMap.$slider) {
+      return false;
+    }
+
+    //  recalculates the pixel size each time the handleResize method is called
+    //  ensures the slider height is set to the value calculated in setPxSizes
+    //  if it's extended during resize
+    setPxSizes();
+    if(stateMap.position_type === "opened") {
+      jqueryMap.$slider.css({ height: stateMap.slider_opened_px });
+    }
+    return;
+  };
+  //  End public method /handleResize/ 
   
   //  Return and export public module methods
   return {
