@@ -222,14 +222,6 @@ spa.shell = (function() {
     };
   // End Event handler /onHashchange/
 
-  // Begin Event handler /onClickChat/
-  onClickChat = function(event) {
-    changeAnchorPart({
-      chat: (stateMap.is_chat_retracted ? "open" : "closed" )
-    });
-    return false;
-  };
-  // End Event handler /onClickChat/
   //  ----------------- ENDS EVENT HANDLERS -------------------------
 
 
@@ -273,13 +265,6 @@ spa.shell = (function() {
     stateMap.$container = $container;
     $container.html(configMap.main_html);
     setJqueryMap();
-    
-    // initialize chat slider and bind click handler
-    stateMap.is_chat_retracted = true;
-    jqueryMap.$chat
-      .attr("title", configMap.chat_retracted_title)
-      .click(onClickChat);
-    //
 
   // configure uriAnchor to use SPA schema
   $.uriAnchor.configModule({
