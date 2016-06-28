@@ -156,13 +156,17 @@ spa.shell = (function() {
   //  * Parses URI anchor component
   //  * Compares proposed application state against current state 
   //  * Adjust the application only where proposes state change
-  //    differs from existing state
+  //    differs from existing state and is allowed by anchor schema
   onHashchange = function(event){
     var
-      anchor_map_previous = copyAnchorMap(),
+      // anchor_map_previous = copyAnchorMap(),
+      // anchor_map_proposed,
+      _s_chat_previous,
+      _s_chat_proposed,
+      s_chat_proposed,
       anchor_map_proposed,
-      _s_chat_previous, _s_chat_proposed,
-      s_chat_proposed;
+      is_ok = true,
+      anchor_map_previous = copyAnchorMap();
 
       // attempt to parse anchor
       try {
@@ -179,22 +183,40 @@ spa.shell = (function() {
       _s_chat_proposed = anchor_map_proposed._s_chat;
 
       // Begin adjust chat component if changed
+      // Clears the URI anchor parameter if the provided position isn't allowed
+      // by the uriAnchor settings and revert to the default position
       if(!anchor_map_previous || _s_chat_previous !== _s_chat_proposed){
         s_chat_proposed = anchor_map_proposed.chat;
         switch(s_chat_proposed) {
-          case "open":
-            toggleChat(true);
+          case "opened":
+            is_ok = spa.chat.setSliderPosition("opened");
             break;
           case "closed":
-            toggleChat(false);
+            is_ok = spa.chat.setSliderPosition("closed");
             break;
           default:
-            toggleChat(false);
+            spa.chat.setSliderPosition("closed")
             delete anchor_map_proposed.chat;
             $.uriAnchor.setAnchor(anchor_map_proposed, null, true); 
         }
       }
       // End adjust chat component if changed
+
+      //  Begin revert anchor if slider change denied
+      //  Adds functionality to react property when setSliderPosition
+      //  returns a false value (which means the position change request
+      //  was denied). Either revers to the prior position anchor value, or
+      //  if that doesn't exist, it uses the default.
+      if(!is_ok) {
+        if(anchor_map_previous) {
+          $.uriAnchor.setAnchor(anchor_map_previous, null, true);
+          stateMap.anchor_map = anchor_map_previous;
+        } else {
+          delete anchor_map_proposed.chat;
+          $.uriAnchor.setAnchor(anchor_map_proposed, null, true);
+        }
+      }
+      //  End revert anchor if slider change denied
 
       return false;
     };
@@ -211,8 +233,41 @@ spa.shell = (function() {
   //  ----------------- ENDS EVENT HANDLERS -------------------------
 
 
+  //  ----------------- BEGIN CALLBACKS -----------------------------
+  //  Begin callback method /setChatAnchor/
+  //  Example: setChatAnchor("closed")
+  //  Purpose: Safely change the anchor's chat component
+  //  Arguments:
+  //    * position_type - may be "opened" or "closed"
+  //  Action:
+  //    If possible, changes the URI anchor parameter "chat" to the requested value
+  //  Returns:
+  //    * true - requested anchor part was updated
+  //    * false - requested anchor part was not updated
+  //  Throws: none
+
+  setChatAnchor = function(position_type) {
+    return changeAnchorPart({
+      chat: position_type
+    });
+  };
+  //  ----------------- END CALLBACKS -------------------------------
+
+
   //  ----------------- BEGIN PUBLIC METHODS ------------------------
-  // Begin Public Method /initModule/
+  //  Begin Public Method /initModule/
+  //  Example: spa.shell.initModule( $("#div_id") );
+  //  Purpose: Directs the shell to offer its capability to the user
+  //  Arguments:
+  //    * $container (example $("#div_id"))
+  //      A jQuery collection that should represent a single DOM container
+  //  Action:
+  //    Populates $container with the shell of the UI and then configures and
+  //    initializes feature modules. The shell is also responsible for
+  //    browser-wide issues such as URI anchor and cookie management.
+  //  Returns: none
+  //  Throws: none
+
   initModule = function($container) {
     // load HTML and map jQuery collections
     stateMap.$container = $container;
@@ -232,8 +287,12 @@ spa.shell = (function() {
   });
 
   // configure and initialize feature modules
-  spa.chat.configModule({});
-  spa.chat.initModule(jqueryMap.$chat);
+  spa.chat.configModule({
+    set_chat_anchor: setChatAnchor,
+    chat_model: spa.model.chat,
+    people_model: spa.model.people
+  });
+  spa.chat.initModule(jqueryMap.$container);
 
   // Handle URI anchor change events
   // This is done after all feature modules are configured
