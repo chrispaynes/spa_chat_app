@@ -82,7 +82,8 @@ spa.chat = (function() {
 
     // method declarations
     setJqueryMap, getEmSize, setPxSizes, setSliderPosition,
-    onClickToggle, configModule, initModule;
+    onClickToggle, configModule, initModule,
+    removeSlider, handleResize;
   //  ----------------- END MODULE SCOPE VARIABLES  -----------------
 
 
@@ -292,12 +293,43 @@ spa.chat = (function() {
     return true;
   };
   //  End public method /initModule/
+
+  //  Begin public method /removeSlider/
+  //  Purpose:
+  //    * Removes chatSlider DOM element
+  //    * Reverts to initial this.state
+  //    * Removes pointers to callbacks and other data
+  //  Arguments: none
+  //  Returns: true
+  //  Throws: none
+
+  removeSlider = function() {
+    //  unwind initialization and state
+    //  remove DOM container -- and event bindings
+    if(jqueryMap.$slider) {
+      jqueryMap.$slider.remove();
+      jqueryMap = {};
+    }
+    stateMap.$append_target = null;
+    stateMap.position_type = "closed";
+
+    //  unwind key configurations
+    configMap.chat_model = null;
+    configMap.people_model = null;
+    configMap.set_chat_anchor = null;
+
+    return true;
+  };
+
+  //  End public method /removeSlider/ 
   
   //  Return and export public module methods
   return {
     setSliderPosition: setSliderPosition,
     configModule: configModule,
-    initModule: initModule
+    initModule: initModule,
+    removeSlider: removeSlider,
+    handleResize: handleResize
   };
   //  ----------------- ENDS PUBLIC METHODS -------------------------
 }());
