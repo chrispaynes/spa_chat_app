@@ -1,6 +1,8 @@
 /*
  *  spa.shell.js
  *  Shell module for SPA
+ *  Provides modules with containers to use
+ *  Initiates modules
  */
 
 /*jslint
@@ -30,6 +32,7 @@ spa.shell = (function() {
                 closed: true
               }
       },
+      resize_interval: 200,
       main_html: String()
         + '<div class="spa-shell-head">'
         +   '<div class="spa-shell-head-logo"></div>'
@@ -45,14 +48,16 @@ spa.shell = (function() {
         + '<div class="spa-shell-modal"></div>'
     },
     stateMap = {
-      anchor_map: {}
+      $container: undefined,
+      anchor_map: {},
+      resize_idto: undefined
     },
     // caches jQuery collections in map
     jqueryMap = {},
 
     // method declarations
     copyAnchorMap, setJqueryMap, changeAnchorPart,
-    onHashchange, setChatAnchor, initModule;
+    onHashchange, onResize, setChatAnchor, initModule;
   //  ----------------- END MODULE SCOPE VARIABLES  -----------------
 
 
@@ -146,17 +151,17 @@ spa.shell = (function() {
 
 
   //  ----------------- BEGIN EVENT HANDLERS ------------------------
-  // Begin Event handler /onHashchange/
-  // Purpose: Handles the Hashchange event
-  // Arguments:
-  //  * event - jQuery event object
-  // Settings: none
-  // Returns: false
-  // Actions:
-  //  * Parses URI anchor component
-  //  * Compares proposed application state against current state 
-  //  * Adjust the application only where proposes state change
-  //    differs from existing state and is allowed by anchor schema
+  //  Begin Event handler /onHashchange/
+  //  Purpose: Handles the Hashchange event
+  //  Arguments:
+  //   * event - jQuery event object
+  //  Settings: none
+  //  Returns: false
+  //  Actions:
+  //   * Parses URI anchor component
+  //   * Compares proposed application state against current state 
+  //   * Adjust the application only where proposes state change
+  //     differs from existing state and is allowed by anchor schema
   onHashchange = function(event){
     var
       // anchor_map_previous = copyAnchorMap(),
@@ -182,9 +187,9 @@ spa.shell = (function() {
       _s_chat_previous = anchor_map_previous._s_chat;
       _s_chat_proposed = anchor_map_proposed._s_chat;
 
-      // Begin adjust chat component if changed
-      // Clears the URI anchor parameter if the provided position isn't allowed
-      // by the uriAnchor settings and revert to the default position
+      //  Begin adjust chat component if changed
+      //  Clears the URI anchor parameter if the provided position isn't allowed
+      //  by the uriAnchor settings and revert to the default position
       if(!anchor_map_previous || _s_chat_previous !== _s_chat_proposed){
         s_chat_proposed = anchor_map_proposed.chat;
         switch(s_chat_proposed) {
@@ -200,7 +205,7 @@ spa.shell = (function() {
             $.uriAnchor.setAnchor(anchor_map_proposed, null, true); 
         }
       }
-      // End adjust chat component if changed
+      //  End adjust chat component if changed
 
       //  Begin revert anchor if slider change denied
       //  Adds functionality to react property when setSliderPosition
@@ -220,7 +225,28 @@ spa.shell = (function() {
 
       return false;
     };
-  // End Event handler /onHashchange/
+  //  End Event handler /onHashchange/
+
+  //  Begin Event handler /onResize/
+  onResize = function() {
+    if(stateMap.resize_idto) {
+      return true;
+    }
+
+    spa.chat.handleResize();
+
+    //  clears its timeout ID once every 200ms during a resize
+    //  this allows the full onResize logic to run
+    stateMap.resize_idto
+      = setTimeout(function() {
+        stateMap.resize_idto = undefined;
+      }, configMap.resize_interval);
+
+    //  returns true from the window.resize event handler
+    //  this prevents jQuery from using preventDefault() or stopPropagation()
+    return true;
+  };
+  //  End Event handler /onResize/
 
   //  ----------------- ENDS EVENT HANDLERS -------------------------
 
@@ -285,6 +311,7 @@ spa.shell = (function() {
   // handle the trigger event, which is used to ensure the anchor
   // is considered on-load
   $(window)
+    .bind("resize", onResize)
     .bind("hashchange", onHashchange)
     .trigger("hashchange");
   
