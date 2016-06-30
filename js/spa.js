@@ -22,10 +22,9 @@
 
 /*global $, spa */
 
-/*  uses module pattern to namespace SPA
-    this module exports an initModule method to immediately start the app
-*/
-
+  //  uses module pattern to namespace SPA
+  //  this module exports an initModule method to immediately start the app
+  //  presents the spa.html with a page element named $container
 
 var spa = (function() {
   "use strict";
@@ -33,7 +32,5 @@ var spa = (function() {
     spa.shell.initModule($container);
   };
 
-  return {
-    initModule: initModule
-  };
+  return { initModule: initModule };
 }());
